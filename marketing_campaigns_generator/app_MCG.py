@@ -6,6 +6,7 @@ import streamlit as st
 #zmienne globalne
 sept = ";"
 df = None
+Grupy = 1
 
 ##############################################################################################################################
 #definicje
@@ -25,7 +26,8 @@ def wczytaj_dane(dane, s, format="csv"):
 ##############################################################################################################################
 #strona
 
-#Imput
+#Input 
+#dane od uzytkownika
 with st.sidebar:
     st.header("Informacje")
     st.markdown("Wybierz w jakim formacie przekazujesz dane")
@@ -35,7 +37,11 @@ with st.sidebar:
     dane = st.file_uploader("Wybierz plik")
     if dane is not None:
         df = wczytaj_dane(dane, sept, jak)
+    Grupy = int(st.text_input("Podaj jaką ilość grup docelową chcesz stworzyć:", value='1'))
+
+
 
 #output
+#Wyswietlenie danych
 st.header("Twoje przesłane dane")
 st.dataframe(df)
