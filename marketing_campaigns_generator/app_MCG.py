@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 import os
 
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 from openai import OpenAI
 
 import Klastrowanie
@@ -14,6 +14,7 @@ sept = ";"
 df = None
 Grupy = 1
 MODEL_GPT = "gpt-4o-mini"
+os.environ.pop("OPENAI_API_KEY", None)
 
 ##############################################################################################################################
 #definicje
@@ -67,9 +68,10 @@ if df is not None:
 
 #Wyslanie klastra z pytaniem o nazwy grup
     if MODEL is not None and CEL is not None:
-        env = dotenv_values(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env'))
-        if env["OPENAI_API_KEY"] is not None:
-            openai_client = OpenAI(api_key=env["OPENAI_API_KEY"])
+        env = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
+        load_dotenv(env)
+        if os.getenv("OPENAI_API_KEY"):
+            openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         else:
             openai_client = st.text_input("Klucz API", type="password")
             MODEL_GPT = st.selectbox("Podaj model GPT:", ("gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"))
