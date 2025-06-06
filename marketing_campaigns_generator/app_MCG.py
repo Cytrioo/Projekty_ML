@@ -1,7 +1,10 @@
 #importy
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
+
+from dotenv import dotenv_values
+from openai import OpenAI
+
 import Klastrowanie
 
 ##############################################################################################################################
@@ -10,7 +13,8 @@ sept = ";"
 df = None
 Grupy = 1
 
-
+env = dotenv_values("projektyGIT/.env")
+openai_client = OpenAI(api_key=env["OPENAI_API_KEY"])
 ##############################################################################################################################
 #definicje
 def wczytaj_dane(dane, s, format="csv"):
@@ -52,9 +56,17 @@ with st.sidebar:
 st.header("Twoje przesłane dane")
 st.dataframe(df)
 
+#Klastrowanie modelu
 if df is not None:
     st.header("Wizualizacja klastra")
     MODEL = Klastrowanie.klastrowanie(df, Grupy)
     vis = Klastrowanie.wizualizacja(MODEL)
     if vis is not None:
         st.image(vis)
+
+#Wyslanie klastra z pytaniem o nazwy grup
+    if MODEL is not None:
+        st.header("Proponowane nazwy dla grup")
+        nazwy_grp = Klastrowanie.send_clu(MODEL, openai_client)
+        for nazwy in nazwy_grp:
+            st.markdown(nazwy_grp[nazwy]['nazwa'])
