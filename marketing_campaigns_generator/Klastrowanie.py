@@ -1,5 +1,5 @@
 import json
-from pycaret.clustering import setup, create_model, plot_model
+from pycaret.clustering import setup, create_model, plot_model, predict_model
 
 def klastrowanie(data, ile_grup):
     setup(data=data)
@@ -10,12 +10,13 @@ def wizualizacja(model):
     vis = plot_model(model, plot='cluster', display_format="streamlit")
     return vis
 
-def send_clu(model, openaikey):
+def send_clu(model_c, df, cel, MODEL_GPT, openaikey):
+    mkmeans = predict_model(model_c, df)
     Opis_klastra = {}
-    for k_id in model['Cluster'].unique():
-        klaster_df = model[model['Cluster'] == k_id]
+    for k_id in mkmeans['Cluster'].unique():
+        klaster_df = mkmeans[mkmeans['Cluster'] == k_id]
         summary = ""
-        for column in model:
+        for column in mkmeans:
             if column == 'Cluster':
                 continue
 
@@ -30,19 +31,27 @@ def send_clu(model, openaikey):
         prompt += f"\n\nKlaster {k_id}:\n{opis}"
 
     prompt += """
-    Wygeneruj najlepsze nazwy dla każdego z klasterów
-    Użyj formatu JSON. Przykładowo:
+    Wygeneruj najlepsze nazwy dla każdego z klastrów oraz najlepszą treść reklamowa dla danego klastra. Wykorzystaj mój cel reklamowy do wygenerowania reklamy.
+    Celem kampanii reklamowej jest """
+    
+    prompt += cel
+
+    prompt += """
+    
+    . Użyj formatu JSON. Przykładowo:
     {
         "Cluster 0": {
-            "nazwa": "Klaster 0"
+            "nazwa": "Klaster 0",
+            "reklama": "W tym klastrze proponuje...."
         },
         "Cluster 1": {
-            "nazwa": "Klaster 1"
+            "nazwa": "Klaster 1",
+            "reklama": "W tym klastrze proponuje...."
         }
     }
     """
     response = openaikey.chat.completions.create(
-        model="gpt-4omini",
+        model=MODEL_GPT,
         temperature=0,
         messages=[
             {
